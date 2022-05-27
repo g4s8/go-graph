@@ -1,6 +1,5 @@
 package search
 
-
 // HasCicle returns true if graph has a cicle
 func HasCicle(g Graph) bool {
 	vsize, _ := g.Size()
@@ -15,9 +14,9 @@ func HasCicle(g Graph) bool {
 }
 
 type cicleVisitor struct {
-	visited []bool
-	current, last    int
-	cicle   bool
+	visited       []bool
+	current, last int
+	cicle         bool
 }
 
 func (cv *cicleVisitor) reset() {
