@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 
 	m "github.com/g4s8/go-matchers"
@@ -15,6 +16,11 @@ func TestSearchPaths(t *testing.T) {
 		path        [2]int
 		expect      [][]int
 	}{
+		{
+			size:        4,
+			directed:    true,
+			connections: [][2]int{},
+		},
 		{
 			size:     5,
 			directed: true,
@@ -98,4 +104,57 @@ func TestSearchPaths(t *testing.T) {
 			}
 		})
 	}
+}
+
+func BenchmarkSearchPaths(b *testing.B) {
+	b.Run("graph-lines", func(b *testing.B) {
+		for i := 10; i < 1_000_001; i *= 10 {
+			g := newTestGraph(i, true)
+			for j := 0; j < i-1; j++ {
+				g.connect(j, j+1)
+			}
+			b.Run(fmt.Sprintf("v-%d", i), func(b *testing.B) {
+				b.ResetTimer()
+				b.ReportAllocs()
+				_ = SimplePaths(g, 0, i-1)
+			})
+		}
+	})
+	b.Run("star-graphs", func(b *testing.B) {
+		for i := 10; i < 1_000_001; i *= 10 {
+			g := newTestGraph(i, true)
+			for j := 1; j < i; j++ {
+				g.connect(0, j)
+			}
+			b.Run(fmt.Sprintf("v-%d", i), func(b *testing.B) {
+				b.ResetTimer()
+				b.ReportAllocs()
+				_ = SimplePaths(g, 0, i-1)
+			})
+		}
+	})
+	b.Run("connected-graphs", func(b *testing.B) {
+		for i := 10; i < 81; i *= 2 {
+			g := newTestGraph(i, true)
+			// connect each vertex to 2 pseudo-random vertices
+			rng := rand.New(rand.NewSource(0))
+			for j := 0; j < i; j++ {
+				for k := 0; k < 2; k++ {
+					var other int
+					for {
+						other = rng.Intn(i)
+						if other != j {
+							break
+						}
+					}
+					g.connect(j, other)
+				}
+			}
+			b.Run(fmt.Sprintf("v-%d", i), func(b *testing.B) {
+				b.ResetTimer()
+				b.ReportAllocs()
+				_ = SimplePaths(g, 0, i-1)
+			})
+		}
+	})
 }

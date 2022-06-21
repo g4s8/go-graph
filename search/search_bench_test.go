@@ -2,52 +2,67 @@ package search
 
 import (
 	"fmt"
-	"math"
+	"math/rand"
 	"testing"
 )
 
-func BenchmarkBreathFirstSearch(b *testing.B) {
-	for _, spec := range []struct{ epv, depth int }{
-		{2, 2}, {2, 3}, {2, 4}, {2, 5},
-		{5, 2}, {5, 3}, {5, 4}, {5, 5},
-		{10, 2}, {10, 3}, {10, 4}, {10, 5},
-		{15, 2}, {15, 3}, {15, 4}, {15, 5},
-	} {
-		b.Run(fmt.Sprintf("DFS-%d-%d", spec.epv, spec.depth), func(b *testing.B) {
-			benchmarkBranching(b, spec.epv, spec.depth, DepthFirstSearch)
-		})
-		b.Run(fmt.Sprintf("BFS-%d-%d", spec.epv, spec.depth), func(b *testing.B) {
-			benchmarkBranching(b, spec.epv, spec.depth, BreathFirstSearch)
-		})
-	}
+func BenchmarkSearch(b *testing.B) {
+	b.Run("graph-lines", func(b *testing.B) {
+		for i := 10; i < 1_000_001; i *= 10 {
+			g := newTestGraph(i, true)
+			for j := 0; j < i-1; j++ {
+				g.connect(j, j+1)
+			}
+			b.Run(fmt.Sprintf("v-%d", i), func(b *testing.B) {
+				b.Run("DFS", searchBenchRunner(g, DepthFirstSearch))
+				b.Run("BFS", searchBenchRunner(g, BreathFirstSearch))
+			})
+		}
+	})
+	b.Run("star-graphs", func(b *testing.B) {
+		for i := 10; i < 1_000_001; i *= 10 {
+			g := newTestGraph(i, true)
+			for j := 1; j < i; j++ {
+				g.connect(0, j)
+			}
+			b.Run(fmt.Sprintf("v-%d", i), func(b *testing.B) {
+				b.Run("DFS", searchBenchRunner(g, DepthFirstSearch))
+				b.Run("BFS", searchBenchRunner(g, BreathFirstSearch))
+			})
+		}
+	})
+	b.Run("connected-graphs", func(b *testing.B) {
+		for i := 10; i < 100_000; i *= 10 {
+			g := newTestGraph(i, true)
+			// connect each vertex to x pseudo-random vertices
+			for x := 2; x < 10; x++ {
+				rng := rand.New(rand.NewSource(0))
+				for j := 0; j < i; j++ {
+					for k := 0; k < x; k++ {
+						var other int
+						for {
+							other = rng.Intn(i)
+							if other != j {
+								break
+							}
+						}
+						g.connect(j, other)
+					}
+				}
+				b.Run(fmt.Sprintf("v-%d x-%d", i, x), func(b *testing.B) {
+					b.Run("DFS", searchBenchRunner(g, DepthFirstSearch))
+					b.Run("BFS", searchBenchRunner(g, BreathFirstSearch))
+				})
+			}
+		}
+	})
 }
 
-func benchmarkBranching(b *testing.B, epv int, depth int, search func(Graph, int, Visitor)) {
-	var size int
-	for d := depth; d >= 0; d-- {
-		size += int(math.Pow(float64(epv), float64(d)))
-	}
-
-	g := newTestGraph(size, false)
-	var pos int
-	fillBranchingGraph(g, 0, &pos, epv, depth)
-
-	visitor := NewFullVisitor(g)
-	b.ResetTimer()
-	search(g, 0, visitor)
-}
-
-func fillBranchingGraph(g *testGraph, v int, pos *int, epv int, depth int) {
-	for i := 0; i < epv; i++ {
-		x := *pos + i
-		g.connect(v, x)
-	}
-	*pos += epv
-	if depth < 1 {
-		return
-	}
-	for i := 0; i < epv; i++ {
-		x := *pos + i
-		fillBranchingGraph(g, x, pos, epv, depth-1)
+func searchBenchRunner(g Graph, search func(Graph, int, Visitor)) func(b *testing.B) {
+	return func(b *testing.B) {
+		visitor := NewFullVisitor(g)
+		b.ResetTimer()
+		b.ReportAllocs()
+		search(g, 0, visitor)
 	}
 }
