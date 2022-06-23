@@ -1,5 +1,6 @@
-This go library provides packages with primitives and functions for
-common graph operations. It's designed to be graph structure agnostic,
+This go library provides packages with functions for
+common graph operations. It doesn't provide graph data structures.
+It's designed to be structure agnostic,
 it depends only on required API for each operation declared as interface
 (similar to standard Go `sort` package).
 
