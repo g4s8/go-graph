@@ -3,7 +3,7 @@ package search
 // DepthFirstSearch visits all vertices using DFS algorithm
 // starting from v vertex.
 func DepthFirstSearch(g Graph, v int, visitor Visitor) {
-	var s intStack
+	var s intQstack
 	s.push(v)
 	for !s.empty() && visitor.Continue() {
 		n := s.pop()

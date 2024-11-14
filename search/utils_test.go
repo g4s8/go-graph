@@ -8,7 +8,7 @@ import (
 func TestIntQueue(t *testing.T) {
 	t.Run("enq-then-deq", func(t *testing.T) {
 		const l = 10
-		var q intQueue
+		var q intQstack
 		assertErrorf(t, q.empty(), "queue should be empty")
 		for i := 0; i < l; i++ {
 			q.enq(i)
@@ -22,7 +22,7 @@ func TestIntQueue(t *testing.T) {
 		assertErrorf(t, q.empty(), "queue should be empty")
 	})
 	t.Run("enq-deq-enq-deq", func(t *testing.T) {
-		var q intQueue
+		var q intQstack
 		assertErrorf(t, q.empty(), "queue should be empty")
 		for i := 0; i < 10; i++ {
 			q.enq(i)
@@ -31,7 +31,7 @@ func TestIntQueue(t *testing.T) {
 		}
 	})
 	t.Run("enq3-deq3", func(t *testing.T) {
-		var q intQueue
+		var q intQstack
 		assertErrorf(t, q.empty(), "queue should be empty")
 		expect := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 		assertErrorf(t, q.empty(), "queue should be empty")
@@ -46,7 +46,7 @@ func TestIntQueue(t *testing.T) {
 		}
 	})
 	t.Run("enq-grow-deq", func(t *testing.T) {
-		var q intQueue
+		var q intQstack
 		assertErrorf(t, q.empty(), "queue should be empty")
 		expect := make([]int, 256)
 		for i := 0; i < 256; i++ {
@@ -62,7 +62,7 @@ func TestIntQueue(t *testing.T) {
 		assertErrorf(t, q.empty(), "queue should be empty")
 	})
 	t.Run("enc-compact-deq", func(t *testing.T) {
-		var q intQueue
+		var q intQstack
 		assertErrorf(t, q.empty(), "queue should be empty")
 		for i := 0; i < 256; i++ {
 			q.enq(i)
@@ -86,7 +86,7 @@ func TestIntQueue(t *testing.T) {
 func TestIntStack(t *testing.T) {
 	t.Run("push-then-pop", func(t *testing.T) {
 		const l = 10
-		var s intStack
+		var s intQstack
 		for i := 0; i < l; i++ {
 			s.push(i)
 		}
@@ -97,7 +97,7 @@ func TestIntStack(t *testing.T) {
 		assertErrorf(t, s.empty(), "stack should be empty")
 	})
 	t.Run("push-pop-push-pop", func(t *testing.T) {
-		var s intStack
+		var s intQstack
 		for i := 0; i < 10; i++ {
 			s.push(i)
 			v := s.pop()
@@ -106,7 +106,7 @@ func TestIntStack(t *testing.T) {
 		assertErrorf(t, s.empty(), "stack should be empty")
 	})
 	t.Run("push3-pop3", func(t *testing.T) {
-		var s intStack
+		var s intQstack
 		expect := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 		for i := 0; i < 3; i++ {
 			for j := 0; j < 3; j++ {
@@ -120,7 +120,7 @@ func TestIntStack(t *testing.T) {
 		assertErrorf(t, s.empty(), "stack should be empty")
 	})
 	t.Run("push-grow-pop", func(t *testing.T) {
-		var s intStack
+		var s intQstack
 		for i := 0; i < 256; i++ {
 			s.push(i)
 		}
@@ -131,7 +131,7 @@ func TestIntStack(t *testing.T) {
 		assertErrorf(t, s.empty(), "stack should be empty")
 	})
 	t.Run("pushall", func(t *testing.T) {
-		var s intStack
+		var s intQstack
 		s.pushAll([]int{1, 2, 3, 4, 5})
 		for i := 5; i > 0; i-- {
 			v := s.pop()
@@ -139,7 +139,7 @@ func TestIntStack(t *testing.T) {
 		}
 	})
 	t.Run("slise", func(t *testing.T) {
-		var s intStack
+		var s intQstack
 		for i := 0; i < 256; i++ {
 			s.push(i)
 		}
@@ -154,11 +154,11 @@ func TestIntStack(t *testing.T) {
 func BenchmarkIntQueue(b *testing.B) {
 	const count = 1000
 	b.Run(fmt.Sprintf("enqN-deqM-%d", count), func(b *testing.B) {
-		for n := 10; n <= 100; n += 10 {
-			for m := 10; m <= n; m += 10 {
+		for n := 10; n <= 100; n += 20 {
+			for m := 10; m <= n; m += 20 {
 				b.Run(fmt.Sprintf("n%dm%d", n, m), func(b *testing.B) {
 					for i := 0; i < b.N; i++ {
-						var q intQueue
+						var q intQstack
 						var i int
 						for i < count {
 							for j := 0; j < n; j++ {
@@ -179,11 +179,11 @@ func BenchmarkIntQueue(b *testing.B) {
 func BenchmarkIntStack(b *testing.B) {
 	const count = 1000
 	b.Run(fmt.Sprintf("pushN-popM-%d", count), func(b *testing.B) {
-		for n := 10; n <= 100; n += 10 {
-			for m := 10; m <= n; m += 10 {
+		for n := 10; n <= 100; n += 20 {
+			for m := 10; m <= n; m += 20 {
 				b.Run(fmt.Sprintf("n%dm%d", n, m), func(b *testing.B) {
 					for i := 0; i < b.N; i++ {
-						var s intStack
+						var s intQstack
 						var i int
 						for i < count {
 							for j := 0; j < n; j++ {
@@ -211,7 +211,7 @@ func BenchmarkIntStack(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			var s intStack
+			var s intQstack
 			for i := 0; i < count; i += batchSize {
 				s.pushAll(batch)
 			}

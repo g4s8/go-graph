@@ -3,7 +3,7 @@ package search
 // BreathFirstSearch visits all vertices in graph using BFS
 // algorithm starting from v vertex.
 func BreathFirstSearch(g Graph, v int, visitor Visitor) {
-	var q intQueue
+	var q intQstack
 	q.enq(v)
 	for !q.empty() && visitor.Continue() {
 		next := q.deq()
