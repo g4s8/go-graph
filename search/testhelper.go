@@ -1,5 +1,7 @@
 package search
 
+import "testing"
+
 type testGraph struct {
 	size     struct{ vertices, edges int }
 	edges    map[int][]int
@@ -31,4 +33,18 @@ func (g *testGraph) connect(a, b int) {
 		g.edges[b] = append(g.edges[b], a)
 	}
 	g.size.edges++
+}
+
+func assertErrorf(t *testing.T, ok bool, format string, args ...interface{}) {
+	t.Helper()
+	if !ok {
+		t.Errorf(format, args...)
+	}
+}
+
+func assertFatalf(t *testing.T, ok bool, format string, args ...interface{}) {
+	t.Helper()
+	if !ok {
+		t.Fatalf(format, args...)
+	}
 }

@@ -37,6 +37,14 @@ func (q *intQueue) empty() bool {
 	return q.first == nil
 }
 
+func (q *intQueue) len() int {
+	var l int
+	for node := q.first; node != nil; node = node.next {
+		l++
+	}
+	return l
+}
+
 type intStack struct {
 	head *intStackNode
 	size int
@@ -71,6 +79,10 @@ func (s *intStack) pop() int {
 
 func (s *intStack) empty() bool {
 	return s.head == nil
+}
+
+func (s *intStack) slice() []int {
+	return s.sliceReverted()
 }
 
 func (s *intStack) sliceReverted() []int {

@@ -31,7 +31,10 @@ func (v visitor) Continue() bool {
 	return true
 }
 
-func (v visitor) Back() {
+func (v visitor) reset() {
+	for i := range v {
+		v[i] = false
+	}
 }
 
 // ShortPathVisitor stops search when found expected vertex
