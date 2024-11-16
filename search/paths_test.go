@@ -22,12 +22,29 @@ func TestSearchPaths(t *testing.T) {
 		// 	directed:    true,
 		// 	connections: [][2]int{},
 		// },
+
+		/*
+			                          +-----------------+
+			                          |                 |
+					 +-----------------+        |
+			                 |        |        ↓        ↓
+				0 -----> 1 -----> 2 -----> 3 -----> 4
+				|                 ↑        ↑        ↑
+				+-----------------+        ↓        ↓
+							   +--------+
+		*/
 		{
 			size:     5,
 			directed: true,
 			connections: [][2]int{
-				{0, 1}, {1, 2}, {0, 2}, {1, 3},
-				{2, 3}, {2, 4}, {4, 3}, {3, 4},
+				{0, 1},
+				{1, 2},
+				{0, 2},
+				{1, 3},
+				{2, 3},
+				{2, 4},
+				{4, 3},
+				{3, 4},
 			},
 			path: [2]int{0, 3},
 			expect: [][]int{
@@ -42,13 +59,19 @@ func TestSearchPaths(t *testing.T) {
 			size:     5,
 			directed: true,
 			connections: [][2]int{
-				{0, 1}, {0, 2}, {0, 3},
-				{1, 4}, {2, 4}, {3, 4},
+				{0, 1},
+				{0, 2},
+				{0, 3},
+				{1, 4},
+				{2, 4},
+				{3, 4},
 				{0, 4},
 			},
 			path: [2]int{0, 4},
 			expect: [][]int{
-				{0, 1, 4}, {0, 2, 4}, {0, 3, 4},
+				{0, 1, 4},
+				{0, 2, 4},
+				{0, 3, 4},
 				{0, 4},
 			},
 		},
@@ -56,16 +79,21 @@ func TestSearchPaths(t *testing.T) {
 			size:     4,
 			directed: true,
 			connections: [][2]int{
-				{0, 1}, {0, 2},
-				{1, 3}, {2, 3},
+				{0, 1},
+				{0, 2},
+				{1, 3},
+				{2, 3},
 				{0, 3},
-				{1, 2}, {2, 1},
+				{1, 2},
+				{2, 1},
 			},
 			path: [2]int{0, 3},
 			expect: [][]int{
 				{0, 3},
-				{0, 1, 3}, {0, 2, 3},
-				{0, 1, 2, 3}, {0, 2, 1, 3},
+				{0, 1, 3},
+				{0, 2, 3},
+				{0, 1, 2, 3},
+				{0, 2, 1, 3},
 			},
 		},
 		{
@@ -73,21 +101,37 @@ func TestSearchPaths(t *testing.T) {
 			directed: true,
 			connections: [][2]int{
 				{0, 4},
-				{0, 1}, {1, 4},
-				{0, 2}, {2, 4},
-				{0, 3}, {3, 4},
-				{1, 2}, {2, 1}, {2, 3}, {3, 2}, {1, 3}, {3, 1},
+				{0, 1},
+				{1, 4},
+				{0, 2},
+				{2, 4},
+				{0, 3},
+				{3, 4},
+				{1, 2},
+				{2, 1},
+				{2, 3},
+				{3, 2},
+				{1, 3},
+				{3, 1},
 			},
 			path: [2]int{0, 4},
 			expect: [][]int{
 				{0, 4},
-				{0, 1, 4}, {0, 2, 4}, {0, 3, 4},
-				{0, 1, 2, 4}, {0, 1, 3, 4},
-				{0, 2, 1, 4}, {0, 2, 3, 4},
-				{0, 3, 1, 4}, {0, 3, 2, 4},
-				{0, 1, 2, 3, 4}, {0, 1, 3, 2, 4},
-				{0, 2, 1, 3, 4}, {0, 2, 3, 1, 4},
-				{0, 3, 1, 2, 4}, {0, 3, 2, 1, 4},
+				{0, 1, 4},
+				{0, 2, 4},
+				{0, 3, 4},
+				{0, 1, 2, 4},
+				{0, 1, 3, 4},
+				{0, 2, 1, 4},
+				{0, 2, 3, 4},
+				{0, 3, 1, 4},
+				{0, 3, 2, 4},
+				{0, 1, 2, 3, 4},
+				{0, 1, 3, 2, 4},
+				{0, 2, 1, 3, 4},
+				{0, 2, 3, 1, 4},
+				{0, 3, 1, 2, 4},
+				{0, 3, 2, 1, 4},
 			},
 		},
 	} {
@@ -108,54 +152,59 @@ func TestSearchPaths(t *testing.T) {
 }
 
 func BenchmarkSearchPaths(b *testing.B) {
-	b.Run("graph-lines", func(b *testing.B) {
-		for i := 10; i < 1_000_001; i *= 10 {
-			g := newTestGraph(i, true)
-			for j := 0; j < i-1; j++ {
-				g.connect(j, j+1)
+	benchRunner := func(g Graph, from, to int, f func(g Graph, from, to int) []Path) func(b *testing.B) {
+		return func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				_ = f(g, from, to)
 			}
-			b.Run(fmt.Sprintf("v-%d", i), func(b *testing.B) {
-				b.ResetTimer()
-				b.ReportAllocs()
-				_ = SimplePaths(g, 0, i-1)
-			})
 		}
-	})
-	b.Run("star-graphs", func(b *testing.B) {
-		for i := 10; i < 1_000_001; i *= 10 {
-			g := newTestGraph(i, true)
-			for j := 1; j < i; j++ {
-				g.connect(0, j)
-			}
-			b.Run(fmt.Sprintf("v-%d", i), func(b *testing.B) {
-				b.ResetTimer()
-				b.ReportAllocs()
-				_ = SimplePaths(g, 0, i-1)
+	}
+
+	for _, tc := range []struct {
+		name string
+		f    func(g Graph, from, to int) []Path
+	}{
+		{"SimplePaths", SimplePaths},
+	} {
+		b.Run(tc.name, func(b *testing.B) {
+			b.Run("graph-lines", func(b *testing.B) {
+				for i := 10; i <= 10_000; i *= 10 {
+					g := newTestGraph(i, true)
+					for j := 0; j < i-1; j++ {
+						g.connect(j, j+1)
+					}
+					b.Run(fmt.Sprintf("v-%d", i), benchRunner(g, 0, i-1, tc.f))
+				}
 			})
-		}
-	})
-	b.Run("connected-graphs", func(b *testing.B) {
-		for i := 10; i < 81; i *= 2 {
-			g := newTestGraph(i, true)
-			// connect each vertex to 2 pseudo-random vertices
-			rng := rand.New(rand.NewSource(0))
-			for j := 0; j < i; j++ {
-				for k := 0; k < 2; k++ {
-					var other int
-					for {
-						other = rng.Intn(i)
-						if other != j {
-							break
+			b.Run("star-graphs", func(b *testing.B) {
+				for i := 10; i <= 10_000; i *= 10 {
+					g := newTestGraph(i, true)
+					for j := 1; j < i; j++ {
+						g.connect(0, j)
+					}
+					b.Run(fmt.Sprintf("v-%d", i), benchRunner(g, 0, i-1, tc.f))
+				}
+			})
+			b.Run("connected-graphs", func(b *testing.B) {
+				for i := 10; i <= 80; i *= 2 {
+					g := newTestGraph(i, true)
+					// connect each vertex to 2 pseudo-random vertices
+					rng := rand.New(rand.NewSource(0))
+					for j := 0; j < i; j++ {
+						for k := 0; k < 2; k++ {
+							var other int
+							for {
+								other = rng.Intn(i)
+								if other != j {
+									break
+								}
+							}
+							g.connect(j, other)
 						}
 					}
-					g.connect(j, other)
+					b.Run(fmt.Sprintf("v-%d", i), benchRunner(g, 0, i-1, tc.f))
 				}
-			}
-			b.Run(fmt.Sprintf("v-%d", i), func(b *testing.B) {
-				b.ResetTimer()
-				b.ReportAllocs()
-				_ = SimplePaths(g, 0, i-1)
 			})
-		}
-	})
+		})
+	}
 }

@@ -5,13 +5,13 @@ package search
 func BreathFirstSearch(g Graph, v int, visitor Visitor) {
 	var q intQstack
 	q.enq(v)
-	for !q.empty() && visitor.Continue() {
+	for !q.empty() {
 		next := q.deq()
-		visitor.Visit(next)
+		if v := visitor.Visit(next); v == nil {
+			return
+		}
+
 		for _, n := range g.Neighbors(next) {
-			if !visitor.Continue() {
-				return
-			}
 			if !visitor.Visited(n) {
 				q.enq(n)
 			}

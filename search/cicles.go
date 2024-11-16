@@ -28,21 +28,19 @@ func (cv *cicleVisitor) reset() {
 	cv.cicle = false
 }
 
-func (cv *cicleVisitor) Visit(v int) {
+func (cv *cicleVisitor) Visit(v int) Visitor {
 	if cv.visited[v] {
 		cv.cicle = true
+		return nil
 	}
 	cv.visited[v] = true
 	cv.last = cv.current
 	cv.current = v
+	return cv
 }
 
 func (cv *cicleVisitor) Visited(v int) bool {
 	return cv.last == v
-}
-
-func (cv *cicleVisitor) Continue() bool {
-	return !cv.cicle
 }
 
 func checkCicle(g Graph, v int, visitor *cicleVisitor) bool {

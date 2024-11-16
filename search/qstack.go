@@ -56,7 +56,9 @@ func (q *intQstack) len() int {
 }
 
 func (q *intQstack) slice() []int {
-	return q.a[q.head:q.tail]
+	cpy := make([]int, q.len())
+	copy(cpy, q.a[q.head:q.tail])
+	return cpy
 }
 
 func (q *intQstack) sliceReverted() []int {

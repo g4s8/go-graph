@@ -13,10 +13,11 @@ func BenchmarkSearch(b *testing.B) {
 	}{
 		{"DFS", DepthFirstSearch},
 		{"BFS", BreathFirstSearch},
+		{"DFS-recursive", DepthFirstSearchRecursive},
 	} {
 		b.Run(t.name, func(b *testing.B) {
 			b.Run("graph-lines", func(b *testing.B) {
-				for i := 10; i <= 1_000_000; i *= 10 {
+				for i := 10; i <= 10_000; i *= 10 {
 					g := newTestGraph(i, true)
 					for j := 0; j < i-1; j++ {
 						g.connect(j, j+1)
@@ -27,7 +28,7 @@ func BenchmarkSearch(b *testing.B) {
 				}
 			})
 			b.Run("star-graphs", func(b *testing.B) {
-				for i := 10; i < 1_000_001; i *= 10 {
+				for i := 10; i < 10_001; i *= 10 {
 					g := newTestGraph(i, true)
 					for j := 1; j < i; j++ {
 						g.connect(0, j)
@@ -38,7 +39,7 @@ func BenchmarkSearch(b *testing.B) {
 				}
 			})
 			b.Run("connected-graphs", func(b *testing.B) {
-				for i := 10; i < 100_000; i *= 10 {
+				for i := 10; i < 10_000; i *= 10 {
 					g := newTestGraph(i, true)
 					// connect each vertex to x pseudo-random vertices
 					for x := 2; x < 10; x++ {

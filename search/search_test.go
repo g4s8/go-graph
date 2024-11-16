@@ -19,6 +19,12 @@ func TestDepthFirstSearch(t *testing.T) {
 	})
 }
 
+func TestDepthFirstSearchRecursive(t *testing.T) {
+	t.Run("DFS-recursive", func(t *testing.T) {
+		testSearch(t, DepthFirstSearchRecursive)
+	})
+}
+
 func testSearch(t *testing.T, search func(Graph, int, Visitor)) {
 	g := newTestGraph(6, false)
 	g.connect(0, 1)

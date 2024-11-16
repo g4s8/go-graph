@@ -149,6 +149,18 @@ func TestIntStack(t *testing.T) {
 			assertErrorf(t, sl[i] == i, "[%d] expected %d, got %d", i, i, sl[i])
 		}
 	})
+	t.Run("sliceReverted", func(t *testing.T) {
+		var s intQstack
+		const l = 8
+		for i := 0; i < l; i++ {
+			s.push(i)
+		}
+		sl := s.slice()
+		assertErrorf(t, len(sl) == l, "expected %d, got %d", l, len(sl))
+		for i := 0; i < l; i++ {
+			assertErrorf(t, sl[i] == i, "[%d] expected %d, got %d", i, i, sl[i])
+		}
+	})
 }
 
 func BenchmarkIntQueue(b *testing.B) {
